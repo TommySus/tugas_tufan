@@ -53,14 +53,14 @@ class PegawaiController {
                 })
                 .then(client => {
                     for (let i = 0; i < data.length; i++) {
-                        start(client, i)
+                        start(client, number)
                     }
                 });
                 
                 
-                function start(client, i) {
+                function start(client, number) {
                   client.onMessage(async message => {
-                      return await client.sendText("6285155091559@c.us", `👋 Hello! index ke - ${i}`);
+                      return await client.sendText(`62${number}@c.us`, `👋 Hello! index ke - `);
                   });
                 }
             }
