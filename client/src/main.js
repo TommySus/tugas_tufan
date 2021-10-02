@@ -3,6 +3,9 @@ import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
 import store from './store'
+import VueExcelXlsx from "vue-excel-xlsx"
+
+Vue.use(VueExcelXlsx)
 
 Vue.config.productionTip = false
 

@@ -1,4 +1,6 @@
 const { Pegawai } = require('../models')
+const wa = require('@open-wa/wa-automate');
+const cron = require('node-cron');
 
 class PegawaiController {
     static viewPegawai (req, res) {
@@ -13,7 +15,7 @@ class PegawaiController {
 
     static addPegawai (req, res) {
         const date = new Date(req.body.tanggal_piket)
-        date.setDate(date.getDate() + 1)
+        date.setDate(date.getDate())
         const obj = {
             nama: req.body.nama,
             nomor_whatsapp: req.body.nomor_whatsapp,
@@ -28,6 +30,40 @@ class PegawaiController {
                 nomor_whatsapp: data.nomor_whatsapp, 
                 tanggal_piket: data.tanggal_piket
             })
+        })
+        .catch(error => {
+            res.status(500).json({message: error})
+        })
+    }
+// cron.schedule('0 */12 * * *', function() {
+    
+// }); <--- cron 12 jam sekali, masukkan static cariPiket di sini untuk menjalankan sesuai dengan cron
+    static cariPiket (req, res) {
+        let tommorow = new Date()
+        tommorow = tommorow.toString().slice(0,9)
+        tommorow = new Date(tommorow)
+        tommorow.setDate(tommorow.getDate() + 4)
+
+        Pegawai.find({where: {tanggal_piket: tommorow}})
+        .then(data => {
+            if (data) {
+                wa.create({
+                    useChrome: true,
+                    maxMessages: data.length
+                })
+                .then(client => {
+                    for (let i = 0; i < data.length; i++) {
+                        start(client, i)
+                    }
+                });
+                
+                
+                function start(client, i) {
+                  client.onMessage(async message => {
+                      return await client.sendText("6285155091559@c.us", `👋 Hello! index ke - ${i}`);
+                  });
+                }
+            }
         })
         .catch(error => {
             res.status(500).json({message: error})
