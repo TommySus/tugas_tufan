@@ -44,7 +44,7 @@ class PegawaiController {
         tommorow = new Date(tommorow)
         tommorow.setDate(tommorow.getDate() + 4)
 
-        Pegawai.find({where: {tanggal_piket: tommorow}})
+        Pegawai.findAll({where: {tanggal_piket: tommorow}})
         .then(data => {
             if (data) {
                 wa.create({
