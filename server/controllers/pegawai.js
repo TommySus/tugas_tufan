@@ -1,4 +1,6 @@
 const { Pegawai } = require('../models')
+const { Sequelize } = require('sequelize')
+const Op = Sequelize.Op;
 const wa = require('@open-wa/wa-automate');
 const cron = require('node-cron');
 
@@ -14,8 +16,12 @@ class PegawaiController {
     }
 
     static addPegawai (req, res) {
+        let today = new Date()
+        let tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
         const date = new Date(req.body.tanggal_piket)
         date.setDate(date.getDate())
+        console.log(date)
         const obj = {
             nama: req.body.nama,
             nomor_whatsapp: req.body.nomor_whatsapp,
@@ -39,21 +45,50 @@ class PegawaiController {
     
 // }); <--- cron 12 jam sekali, masukkan static cariPiket di sini untuk menjalankan sesuai dengan cron
     static cariPiket (req, res) {
-        let tommorow = new Date()
-        tommorow = tommorow.toString().slice(0,9)
-        tommorow = new Date(tommorow)
-        tommorow.setDate(tommorow.getDate() + 4)
+        function appendLeadingZeroes(n){
+            if(n <= 9){
+              return "0" + n;
+            }
+            return n
+        }
+        let current_datetime = new Date()
+        let formatted_date = current_datetime.getFullYear() + "-" + appendLeadingZeroes(current_datetime.getMonth() + 1) + "-" + appendLeadingZeroes(current_datetime.getDate())
+        let tomorrow = new Date(formatted_date)
+        tomorrow.setDate(tomorrow.getDate() + 1)
 
-        Pegawai.findAll({where: {tanggal_piket: tommorow}})
+        let current_datetime2 = new Date()
+        let formatted_date2 = current_datetime2.getFullYear() + "-" + appendLeadingZeroes(current_datetime2.getMonth() + 1) + "-" + appendLeadingZeroes(current_datetime2.getDate())
+        let tomorrow2 = new Date(formatted_date2)
+        tomorrow2.setDate(tomorrow2.getDate() + 1)
+        let tommorow_START = tomorrow2.setHours(23)
+
+
+        let number;
+
+        Pegawai.findAll({where: 
+            {
+                tanggal_piket:  { 
+                    [Op.gte]: tomorrow ,
+                    [Op.lte]: tommorow_START
+                }
+            }
+        })
         .then(data => {
+            console.log(data)
             if (data) {
+                for (let i = 0; i < data.length; i++) {
+                    number = data[i].nomor_whatsapp
+                    start(client, number)
+                }
                 wa.create({
                     useChrome: true,
                     maxMessages: data.length
                 })
                 .then(client => {
                     for (let i = 0; i < data.length; i++) {
-                        start(client, number)
+                        number = data[i].nomor_whatsapp
+                        console.log(number, i)
+                        // start(client, number)
                     }
                 });
                 
@@ -66,6 +101,7 @@ class PegawaiController {
             }
         })
         .catch(error => {
+            // console.log(error)
             res.status(500).json({message: error})
         })
     }
