@@ -87,8 +87,8 @@ class PegawaiController {
                 .then(client => {
                     for (let i = 0; i < data.length; i++) {
                         number = data[i].nomor_whatsapp
-                        console.log(number, i)
-                        // start(client, number)
+                        // console.log(number, i)
+                        start(client, number)
                     }
                 });
                 
